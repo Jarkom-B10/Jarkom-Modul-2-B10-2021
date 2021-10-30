@@ -251,7 +251,33 @@ www.general     IN      CNAME   general.mecha.franky.B10.com.
 ## Soal 7
 Untuk memperlancar komunikasi Luffy dan rekannya, dibuatkan subdomain melalui Water7 dengan nama **general.mecha.franky.yyy.com** dengan alias **www.general.mecha.franky.yyy.com** yang mengarah ke Skypie(7).
 ### Solusi 7
-
+- Mengedit konfigurasi DNS Water7 ```nano /etc/bind/sunnygo/mecha.franky.B10.com```
+- Menambahkan konfigurasi untuk menyediakan subdomain general mecha franky yang mengarah ke skypie (10.12.2.4)
+```
+general IN      A       10.12.2.4
+www.general     IN      CNAME   general.mecha.franky.B10.com.
+```
+- File mecha.franky.B10.com menjadi:
+```
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     mecha.franky.B10.com. root.mecha.franky.B10.com. (
+                              2021102601                ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      mecha.franky.B10.com.
+@       IN      A       10.12.2.4
+www     IN      CNAME   mecha.franky.B10.com.
+general IN      A       10.12.2.4
+www.general     IN      CNAME   general.mecha.franky.B10.com.
+```
+- Testing dengan melakukan ping ke super.franky.B10.com
+![Testing General Mecha Franky](img/testing_4.png)
 ## Soal 8
 (8) Setelah melakukan konfigurasi server, maka dilakukan konfigurasi Webserver. Pertama dengan webserver **www.franky.yyy.com**. Pertama, luffy membutuhkan webserver dengan DocumentRoot pada /var/www/franky.yyy.com.
 ### Solusi 8
