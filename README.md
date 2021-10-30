@@ -87,23 +87,166 @@ zone "franky.B10.com" {
 };
 ```
 - Buat folder kaizoku ```mkdir /etc/bind/kaizoku```
-- Mengganti konfigurasi untuk franky.B10.com ```nano /etc/bind/kaizoku/franky.B10.com
+- Mengganti konfigurasi untuk franky.B10.com ```nano /etc/bind/kaizoku/franky.B10.com```
+```
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     franky.B10.com. root.franky.B10.com. (
+                              2021102601                ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      franky.B10.com.
+@       IN      A       10.12.2.2
+www     IN      CNAME   franky.B10.com.
+```
+- ```www     IN      CNAME   franky.B10.com.``` Di sini berfungsi untuk membuat alias dari franky.B10.com
+- Menambahkan nameserver pada Loguetown dan Alabasta ```nano /etc/resolv.conf```
+```
+nameserver 10.12.2.2
+```
+- Testing dilakukan dengan cara ping franky.B10.com dan www.franky.B10.com 
+```
+ping franky.B10.com
+ping www.franky.B10.com
+```
+![Hasil testing](img/testing_1.png)
+
 
 ## Soal 3
 Setelah itu buat subdomain **super.franky.yyy.com** dengan alias **www.super.franky.yyy.com** yang diatur DNS nya di EniesLobby dan mengarah ke Skypie(3).
 ### Solusi 3
-
+- Mengedit konfigurasi DNS EniesLobby ```nano /etc/bind/kaizoku/franky.B10.com```
+- Menambahkan konfigurasi untuk menyediakan subdomain super franky yang mengarah ke skypie (10.12.2.4)
+```
+super   IN      A       10.12.2.4
+www.super       IN      CNAME   super.franky.B10.com.
+```
+- File franky.B10.com menjadi:
+```
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     franky.B10.com. root.franky.B10.com. (
+                              2021102601                ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      franky.B10.com.
+@       IN      A       10.12.2.2
+www     IN      CNAME   franky.B10.com.
+super   IN      A       10.12.2.4
+www.super       IN      CNAME   super.franky.B10.com.
+```
+- Testing dengan melakukan ping ke super.franky.B10.com
+![Testing Super Franky](img/testing_2.png)
 ## Soal 4
 Buat juga reverse domain untuk domain utama (4). 
 ### Solusi 4
-
+Langkah-langkah yang dilakukan:
+- Menambahkan konfigurasi pada named.conf.local ```nano /etc/bind/named.conf.local```
+```
+zone "2.12.10.in-addr.arpa" {
+    type master;
+    file "/etc/bind/kaizoku/2.12.10.in-addr.arpa";
+};
+```
+- Membuat file konfigurasi DNS 2.12.10.in-addr.arpa ```nano /etc/bind/kaizoku/franky.B10.com```
+```
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     franky.B10.com. root.franky.B10.com. (
+                              2021102601                ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+2.12.10.in-addr.arpa.   IN      NS      franky.B10.com.
+2       IN      PTR     franky.B10.com.
+@       IN      AAAA    ::1
+```
+- Untuk testingnya, dilakukan pada Loguetown
+![Testing Reverse Domain](img/testing_3.png)
 ## Soal 5
 Supaya tetap bisa menghubungi Franky jika server EniesLobby rusak, maka buat Water7 sebagai DNS Slave untuk domain utama (5).
 ### Solusi 5
-
+Langkah-langkah untuk menyelesaikan soal 5:
+- Mengganti konfigurasi local pada EniesLobbby 
+```
+zone "franky.B10.com" {
+      type master;
+      notify yes;
+      also-notify { 10.12.2.3; };
+      allow-transfer { 10.12.2.3; };
+      file "/etc/bind/kaizoku/franky.B10.com";
+};
+```
+- Menyiapkan konfigurasi DNS pada Water7
+```
+zone "franky.B10.com" {
+    type slave;
+    masters { 10.12.2.2; };
+    file "/var/etc/bind/franky.B10.com";
+};
+```
 ## Soal 6
 Setelah itu terdapat subdomain **mecha.franky.yyy.com** dengan alias **www.mecha.franky.yyy.com** yang didelegasikan dari EniesLobby ke Water7 dengan IP menuju ke Skypie dalam folder sunnygo(6).
 ### Solusi 6
+- Mengganti konfigurasi dns pada EnieLobby. Pada bagian ini, ditambahkan baris ns1 dan mecha untuk mendelegasikan subdomain.
+```
+
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     franky.B10.com. root.franky.B10.com. (
+                              2021102601                ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      franky.B10.com.
+@       IN      A       10.12.2.4
+www     IN      CNAME   franky.B10.com.
+super   IN      A       10.12.2.4
+www.super       IN      CNAME   super.franky.B10.com.
+ns1     IN      A       10.12.2.3
+mecha   IN      NS      ns1
+@       IN      AAAA    ::1
+```
+- Pada Water7, dibuat folder sunnygo terlebih dahulu ```mkdir /etc/bind/sunnygo```
+- Pada Water7, dibuat file mecha.franky.B10.com ```nano /etc/bind/sunnygo/mecha.franky.B10.com``. Berikut konfigurasinya
+```
+  GNU nano 2.5.3    File: /etc/bind/sunnygo/mecha.franky.B10.com                
+
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     mecha.franky.B10.com. root.mecha.franky.B10.com. (
+                              2021102601                ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      mecha.franky.B10.com.
+@       IN      A       10.12.2.4
+www     IN      CNAME   mecha.franky.B10.com.
+general IN      A       10.12.2.4
+www.general     IN      CNAME   general.mecha.franky.B10.com.
+```
 
 ## Soal 7
 Untuk memperlancar komunikasi Luffy dan rekannya, dibuatkan subdomain melalui Water7 dengan nama **general.mecha.franky.yyy.com** dengan alias **www.general.mecha.franky.yyy.com** yang mengarah ke Skypie(7).
