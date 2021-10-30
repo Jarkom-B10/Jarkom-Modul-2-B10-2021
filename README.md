@@ -16,10 +16,78 @@ Luffy adalah seorang yang akan jadi Raja Bajak Laut. Demi membuat Luffy menjadi 
 ![topologi](/img/topologi.png)
 EniesLobby akan dijadikan sebagai DNS Master, Water7 akan dijadikan DNS Slave, dan Skypie akan digunakan sebagai Web Server. Terdapat 2 Client yaitu Loguetown, dan Alabasta. Semua node terhubung pada router Foosha, sehingga dapat mengakses internet (1).
 ### Solusi 1
+Untuk soal 1, kami buat topologi yang sesuai dengan permintaan soal. Untuk konfigurasi siapa yang menjadi client, DNS Master, dan sebagainya, dikonfigurasi sepanjang soal-soal selanjutnya.
+![topologi_hasil](img/topologi_hasil.png)
+### Foosha (Router)
+```
+auto eth0
+iface eth0 inet dhcp
+
+auto eth1
+iface eth1 inet static
+	address 10.12.1.1
+	netmask 255.255.255.0
+
+auto eth2
+iface eth2 inet static
+	address 10.12.2.1
+	netmask 255.255.255.0
+```
+### EnniesLobby (DNS Master)
+```
+auto eth0
+iface eth0 inet static
+	address 10.12.2.2
+	netmask 255.255.255.0
+	gateway 10.12.2.1
+```
+### Water 7 (DNS Slave)
+```
+auto eth0
+iface eth0 inet static
+	address 10.12.2.3
+	netmask 255.255.255.0
+	gateway 10.12.2.1
+```
+### Skypie (Web Server)
+```
+auto eth0
+iface eth0 inet static
+	address 10.12.2.4
+	netmask 255.255.255.0
+	gateway 10.12.2.1
+```
+### Loguetown (Client)
+```
+auto eth0
+iface eth0 inet static
+	address 10.12.1.2
+	netmask 255.255.255.0
+	gateway 10.12.1.1
+```
+### Alabasta (Client)
+```
+auto eth0
+iface eth0 inet static
+	address 10.12.1.3
+	netmask 255.255.255.0
+	gateway 10.12.1.1
+```
 
 ## Soal 2
 Luffy ingin menghubungi Franky yang berada di EniesLobby dengan denden mushi. Kalian diminta Luffy untuk membuat website utama dengan mengakses **franky.yyy.com** dengan alias **www.franky.yyy.com** pada folder kaizoku (2).
 ### Solusi 2
+Untuk menyelesaikan permintaan soal 2, dilakukan langkah-langkah berikut:
+- Install bind9 ```apt-get install bind9```
+- Edit konfigurasi ```nano /etc/bind/named.local.conf``` dengan menambahkan potongan kode berikut ini:
+```
+zone "franky.B10.com" {
+        type master;
+        file "/etc/bind/kaizoku/franky.B10.com";
+};
+```
+- Buat folder kaizoku ```mkdir /etc/bind/kaizoku```
+- Mengganti konfigurasi untuk franky.B10.com ```nano /etc/bind/kaizoku/franky.B10.com
 
 ## Soal 3
 Setelah itu buat subdomain **super.franky.yyy.com** dengan alias **www.super.franky.yyy.com** yang diatur DNS nya di EniesLobby dan mengarah ke Skypie(3).
