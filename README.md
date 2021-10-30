@@ -112,42 +112,272 @@ Untuk memperlancar komunikasi Luffy dan rekannya, dibuatkan subdomain melalui Wa
 ## Soal 8
 (8) Setelah melakukan konfigurasi server, maka dilakukan konfigurasi Webserver. Pertama dengan webserver **www.franky.yyy.com**. Pertama, luffy membutuhkan webserver dengan DocumentRoot pada /var/www/franky.yyy.com.
 ### Solusi 8
+**Skypie**
+- Install beberapa aplikasi yang diperlukan
+```
+apt-get update
+apt-get install apache2 -y
+apt-get install php -y
+apt-get install libapache2-mod-php7.0
+```
+- Di direktori `/etc/apache2/sites-available`, copy file default config `000-default.conf` jadi `franky.B10.com.conf`.
+- Tambahkan line berikut:
+```
+DocumentRoot /var/www/franky.B10.com
+ServerName franky.B10.com
+ServerAlias www.franky.B10.com
+```
+- Enable website lalu restart apache2
+```
+a2ensite franky.B10.com.conf
+service apache2 restart
+```
+- Mengisi asset untuk semua webserver menggunakan repo pada `ps`. Letakkan di dalam folder `var/www`
+```
+wget https://github.com/FeinardSlim/Praktikum-Modul-2-Jarkom/raw/main/franky.zip
+unzip franky.zip
+```
+- Rename folder franky menjadi `franky.B10.com`
+
+**Loguetown**
+- Install aplikasi yang diperlukan
+```
+apt-get install lynx
+```
+- Tes webserver untuk halaman `www.franky.B10.com`
+![08-1](/img/soal08-1.png)
 
 ## Soal 9
 (9) Setelah itu, Luffy juga membutuhkan agar url **www.franky.yyy.com/index.php/home** dapat menjadi menjadi **www.franky.yyy.com/home**.
 ### Solusi 9
+**Skypie**
+- Akan digunakan `aliasing`; tambahkan di `franky.B10.com.conf`
+```
+<Directory /var/www/franky.B10.com>
+    Options +FollowSymLinks -Multiviews
+    AllowOverride All
+</Directory>
+Alias "/home" "/var/www/franky.B10.com/index.php/home"
+```
+- Restart server
+```
+service apache2 restart
+```
+
+**Loguetown**
+- Tes webserver untuk halaman `www.franky.B10.com/home`
+![09-1](/img/soal09-1.png)
 
 ## Soal 10
 (10) Setelah itu, pada subdomain **www.super.franky.yyy.com**, Luffy membutuhkan penyimpanan aset yang memiliki DocumentRoot pada /var/www/super.franky.yyy.com.
 ### Solusi 10
+**Skypie**
+- Di direktori `/etc/apache2/sites-available`, copy file default config `000-default.conf` jadi `super.franky.B10.com.conf`.
+- Tambahkan line berikut:
+```
+DocumentRoot /var/www/super.franky.B10.com
+ServerName super.franky.B10.com
+ServerAlias www.super.franky.B10.com
+```
+- Enable website lalu restart apache2
+```
+a2ensite franky.B10.com.conf
+service apache2 restart
+```
+- Mengisi asset untuk semua webserver menggunakan repo pada `ps`. Letakkan di dalam folder `var/www`
+```
+wget https://github.com/FeinardSlim/Praktikum-Modul-2-Jarkom/raw/main/super.franky.zip
+unzip super.franky.zip
+```
+- Rename folder franky menjadi `super.franky.B10.com`
+
+**Loguetown**
+- Tes webserver untuk halaman `www.super.franky.B10.com`
+![10-1](/img/soal10-1.png)
+
+Tampil halaman yang kami buat sendiri untuk testing
 
 ## Soal 11
 (11) Akan tetapi, pada folder /public, Luffy ingin hanya dapat melakukan directory listing saja.
 ### Solusi 11
+**Skypie**
+- Akan digunakan `aliasing`; tambahkan di `super.franky.B10.com.conf`
+```
+<Directory /var/www/super.franky.B10.com/public>
+    Options +Indexes
+</Directory>
+```
+- Restart server
+```
+service apache2 restart
+```
+
+**Loguetown**
+- Tes webserver untuk halaman `www.super.franky.B10.com/public`
+![11-1](/img/soal11-1.png)
 
 ## Soal 12
 (12) Tidak hanya itu, Luffy juga menyiapkan error file 404.html pada folder /error untuk mengganti error kode pada apache.
 ### Solusi 12
+**Skypie**
+- Di direktori `/etc/apache2/sites-available`, buka file `super.franky.B10.com.conf`.
+- Tambahkan line berikut:
+```
+ErrorDocument 404 /error/404.html
+```
+- Restart server
+```
+service apache2 restart
+```
+
+**Loguetown**
+- Tes webserver untuk halaman `www.super.franky.B10.com/random`
+![12-1](/img/soal12-1.png)
 
 ## Soal 13
 (13) Luffy juga meminta Nami untuk dibuatkan konfigurasi virtual host. Virtual host ini bertujuan untuk dapat mengakses file asset **www.super.franky.yyy.com/public/js** menjadi **www.super.franky.yyy.com/js**.
 ### Solusi 13
+**Skypie**
+- Di direktori `/etc/apache2/sites-available`, buka file `super.franky.B10.com.conf`.
+- Tambahkan line berikut:
+```
+<Directory /var/www/super.franky.B10.com/public/js>
+    Options +Indexes
+</Directory>
+Alias "/js" "/var/www/super.franky.B10.com/public/js"
+```
+
+**Loguetown**
+- Tes webserver untuk halaman `www.super.franky.B10.com/js`
+![13-1](/img/soal13-1.png)
 
 ## Soal 14
 (14) Dan Luffy meminta untuk web **www.general.mecha.franky.yyy.com** hanya bisa diakses dengan port 15000 dan port 15500.
 ### Solusi 14
+**Skypie**
+- Di direktori `/etc/apache2/sites-available`, copy file default config `000-default.conf` jadi `general.mecha.franky.B10.com.conf`.
+- Buka file conf dan buat `VirtualHost` baru, untuk port 15000 dan 15500
+```
+<VirtualHost *:15000>
+    ...
+</VirtualHost>
+
+<VirtualHost *:15500>
+    ...
+</VirtualHost>
+```
+- Lalu tambahkan line berikut di masing-masing `VirtualHost`:
+```
+DocumentRoot /var/www/general.mecha.franky.B10.com
+ServerName general.mecha.franky.B10.com
+ServerAlias www.general.mecha.franky.B10.com
+```
+- Buka file `ports.conf` untuk menambahkan `listen`
+```
+Listen 15000
+Listen 15500
+```
+- Enable website lalu restart apache2
+```
+a2ensite franky.B10.com.conf
+service apache2 restart
+```
+- Mengisi asset untuk semua webserver menggunakan repo pada `ps`. Letakkan di dalam folder `var/www`
+```
+wget https://github.com/FeinardSlim/Praktikum-Modul-2-Jarkom/raw/main/general.mecha.franky.zip
+unzip general.mecha.franky.zip
+```
+- Rename folder franky menjadi `general.mecha.franky.B10.com`
+
+**Loguetown**
+- Tes webserver untuk halaman `www.general.mecha.franky.B10.com` (tampak halaman `www.franky.B10.com` karena efek dari soal nomor 16)
+![14-1](/img/soal14-1.png)
+- Tes webserver untuk halaman `www.general.mecha.franky.B10.com:15000`
+![14-2](/img/soal14-2.png)
+- Tes webserver untuk halaman `www.general.mecha.franky.B10.com:15500`
+![14-3](/img/soal14-3.png)
 
 ## Soal 15
 dengan autentikasi username luffy dan password onepiece dan file di /var/www/general.mecha.franky.yyy.
 ### Solusi 15
+**Skypie**
+- Di direktori `/etc/apache2/sites-available`, buka file `general.mecha.franky.B09.com.conf`.
+- Tambahkan line berikut:
+```
+<Directory "/var/www/general.mecha.franky.B10.com">
+    AuthType Basic
+    AuthName "Restricted Content"
+    AuthUserFile /etc/apache2/.htpasswd
+    Require valid-user
+</Directory>
+```
+- Menjalankan perintah untuk membuat akun baru dengan username `luffy` dan password `onepiece`
+```
+htpasswd -c /etc/apache2/.htpasswd luffy
+```
+- Restart server
+```
+service apache2 restart
+```
+
+**Loguetown**
+- Tes webserver untuk halaman `www.general.mecha.franky.B10.com:15000`
+![15-1](/img/soal15-1.png)
+![15-2](/img/soal15-2.png)
+![15-3](/img/soal15-3.png)
+![15-3](/img/soal15-4.png)
 
 ## Soal 16
 Dan setiap kali mengakses IP **Skypie** akan dialihkan secara otomatis ke **www.franky.yyy.com**.
 ### Solusi 16
+**Skypie**
+- Di direktori `/etc/apache2/sites-available`, buka file `000-default.conf`.
+- Tambahkan line berikut:
+```
+Redirect / http://www.franky.B10.com/
+```
+- Restart server
+```
+service apache2 restart
+```
+
+**Loguetown**
+- Tes webserver untuk halaman `10.12.2.4`
+![16-1](/img/soal16-1.png)
 
 ## Soal 17
 Dikarenakan Franky juga ingin mengajak temannya untuk dapat menghubunginya melalui website **www.super.franky.yyy.com**, dan dikarenakan pengunjung web server pasti akan bingung dengan randomnya images yang ada, maka Franky juga meminta untuk mengganti request gambar yang memiliki substring “franky” akan diarahkan menuju *franky.png*.
 ### Solusi 17
+**Skypie**
+- Aktifkan modul rewrite dengan:
+```
+a2enmod rewrite
+```
+- Tambahkan file `.htaccess` dalam folder `/var/www/super.franky.B10.com` dan isi dengan: 
+```
+RewriteEngine On
+RewriteBase /var/www/super.franky.B10.com/public/images/
+RewriteCond %{REQUEST_FILENAME} !franky.png
+RewriteRule (.*)franky(.*) http://super.franky.B10.com/public/images/franky.png
+```
+- Di direktori `/etc/apache2/sites-available`, buka file `super.franky.B10.com.conf`.
+- Tambahkan line berikut:
+```
+<Directory /var/www/super.franky.B10.com>
+    Options +FollowSymLinks -Multiviews
+    AllowOverride All
+</Directory>
+```
+- Restart server
+```
+service apache2 restart
+```
+
+**Loguetown**
+- Tes webserver untuk halaman `www.super.franky.B10.com/public/images/franky.png`
+![17-1](/img/soal17-1.png)
+- Tes webserver untuk halaman `www.super.franky.B10.com/public/images/not-franky.jpg`
+![17-2](/img/soal17-2.png)
 
 
 ## Kendala
